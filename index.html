@@ -9,15 +9,36 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background: #f8f9fa; color: #212529; padding: 16px; }
         .container { max-width: 700px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 24px; }
-        header h1 { font-size: 24px; color: #0d6efd; margin-bottom: 8px; }
-        header p { color: #6c757d; font-size: 15px; }
+        
+        /* Боковое меню */
+        #sidebar {
+            position: fixed; top: 0; left: -300px; width: 280px; height: 100vh;
+            background: white; box-shadow: 4px 0 12px rgba(0,0,0,0.1);
+            z-index: 1000; transition: left 0.3s ease;
+            padding: 20px; display: flex; flex-direction: column;
+        }
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: rgba(0,0,0,0.4); z-index: 999; display: none;
+        }
+        .menu-btn {
+            background: none; border: none; font-size: 24px; cursor: pointer;
+        }
+        #sidebar h2 {
+            font-size: 20px; margin-bottom: 24px; color: #0d6efd;
+        }
+        #sidebar nav a {
+            text-decoration: none; color: #212529; font-size: 17px; padding: 10px 0;
+            display: block;
+        }
+        #sidebar nav a:hover {
+            color: #0d6efd;
+        }
 
         .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 20px; }
         .input-group { margin-bottom: 18px; position: relative; }
         .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #495057; font-size: 15px; }
 
-        /* Общий стиль для всех полей */
         .input-field, .select-header {
             width: 100%; padding: 14px; border: 1px solid #ced4da; border-radius: 12px;
             font-size: 16px; background: white;
@@ -28,11 +49,7 @@
             box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
         }
 
-        /* Кастомный dropdown */
-        .custom-select {
-            position: relative;
-            width: 100%;
-        }
+        .custom-select { position: relative; width: 100%; }
         .select-header {
             cursor: pointer; display: flex; justify-content: space-between; align-items: center;
         }
@@ -54,7 +71,6 @@
         .option:hover { background: #f1f5ff; }
         .option.selected { background: #e7f1ff; font-weight: 600; }
 
-        /* Подсказка под полем суммы */
         .hint {
             font-size: 13px; color: #6c757d; margin-top: 6px;
             position: absolute; left: 0; bottom: -22px;
@@ -77,47 +93,25 @@
 </head>
 <body>
     <!-- Боковое меню -->
-<div id="sidebar" style="
-    position: fixed; top: 0; left: -300px; width: 280px; height: 100vh;
-    background: white; box-shadow: 4px 0 12px rgba(0,0,0,0.1);
-    z-index: 1000; transition: left 0.3s ease;
-    padding: 20px; display: flex; flex-direction: column;
-">
-    <button onclick="closeMenu()" style="
-        align-self: flex-end; background: none; border: none; font-size: 24px;
-        cursor: pointer; margin-bottom: 20px;
-    ">×</button>
-    
-    <h2 style="font-size: 20px; margin-bottom: 24px; color: #0d6efd;">FastSwap.pro</h2>
-    
-    <nav style="display: flex; flex-direction: column; gap: 16px;">
-        <a href="index.html" style="text-decoration: none; color: #212529; font-size: 17px; padding: 10px 0;">🏠 Обмен</a>
-        <a href="support.html" style="text-decoration: none; color: #212529; font-size: 17px; padding: 10px 0;">❓ Поддержка</a>
-        <a href="privacy.html" style="text-decoration: none; color: #212529; font-size: 17px; padding: 10px 0;">🔒 Политика конфиденциальности</a>
-    </nav>
-</div>
-
-<!-- Оверлей -->
-<div id="overlay" style="
-    position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
-    background: rgba(0,0,0,0.4); z-index: 999; display: none;
-"></div>
-
-<!-- Кнопка меню в хедере -->
-<header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
-    <button id="menuBtn" style="
-        background: none; border: none; font-size: 24px; cursor: pointer;
-    ">☰</button>
-    <div style="text-align: center; flex-grow: 1;">
-        <h1>FastSwap.pro</h1>
-        <p>Обмен 50+ валют: крипта, фиат, банки РФ</p>
+    <div id="sidebar">
+        <button onclick="closeMenu()" class="menu-btn">×</button>
+        <h2>FastSwap.pro</h2>
+        <nav>
+            <a href="index.html">🏠 Обмен</a>
+            <a href="support.html">❓ Поддержка</a>
+            <a href="privacy.html">🔒 Политика конфиденциальности</a>
+        </nav>
     </div>
-    <div style="width: 24px;"></div> <!-- для баланса -->
-</header>
+    <div id="overlay" onclick="closeMenu()"></div>
+
     <div class="container">
-        <header>
-            <h1>FastSwap.pro</h1>
-            <p>Обмен 50+ валют: крипта, фиат, банки РФ</p>
+        <header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+            <button id="menuBtn" class="menu-btn">☰</button>
+            <div style="text-align: center; flex-grow: 1;">
+                <h1>FastSwap.pro</h1>
+                <p>Обмен 50+ валют: крипта, фиат, банки РФ</p>
+            </div>
+            <div style="width: 24px;"></div>
         </header>
 
         <div class="card">
@@ -132,7 +126,6 @@
                 </div>
             </div>
 
-            <!-- Выбор банка (только если RUB) -->
             <div class="input-group" id="bankSelect" style="display: none;">
                 <label>Банк / платёжная система</label>
                 <div class="custom-select" id="bankSelectCustom">
@@ -170,7 +163,6 @@
     </div>
 
     <script>
-        // Валюты
         const currencies = [
             { value: "RUB", name: "Российский рубль (RUB)" },
             { value: "BTC", name: "Bitcoin (BTC)" },
@@ -190,7 +182,6 @@
             { value: "XMR", name: "Monero (XMR)" }
         ];
 
-        // Банки
         const banks = [
             { value: "sber", name: "СберБанк" },
             { value: "tinkoff", name: "Тинькофф" },
@@ -209,7 +200,6 @@
         const cryptoCurrencies = currencies.filter(c => c.value !== "RUB");
         const allCurrencies = currencies;
 
-        // Минимальные суммы (в единицах валюты)
         const minAmounts = {
             RUB: 100,
             BTC: 0.001,
@@ -259,11 +249,10 @@
         let toValue = "BTC";
         let bankValue = "sber";
 
-        // Универсальная функция для dropdown
         function initDropdown(id, list, initial, onChange) {
             const header = document.getElementById(`${id}Header`);
             const optionsList = document.getElementById(`${id}OptionsList`);
-            const container = document.getElementById(`${id}SelectCustom` || `${id}Select`);
+            const container = document.getElementById(`${id}SelectCustom`) || document.getElementById(`${id}Select`);
             const searchInput = document.querySelector(`#${id}Options .search-input`);
 
             function renderOptions(items) {
@@ -332,7 +321,6 @@
             const bankSelectEl = document.getElementById('bankSelect');
             bankSelectEl.style.display = fromValue === 'RUB' ? 'block' : 'none';
 
-            // Обновляем подсказку
             document.getElementById('minHint').textContent = formatMinHint(fromValue);
 
             if (fromValue === toValue) {
@@ -376,7 +364,6 @@
 
         document.getElementById('amount').addEventListener('input', updateUI);
 
-        // Инициализация
         initDropdown('from', allCurrencies, 'RUB', (val) => {
             fromValue = val;
             updateUI();
@@ -391,10 +378,22 @@
             bankValue = val;
         });
 
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.custom-select')) {
-                document.querySelectorAll('.select-options').forEach(el => el.classList.remove('active'));
-            }
+        // Меню
+        function openMenu() {
+            document.getElementById('sidebar').style.left = '0';
+            document.getElementById('overlay').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMenu() {
+            document.getElementById('sidebar').style.left = '-300px';
+            document.getElementById('overlay').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('menuBtn').addEventListener('click', openMenu);
+        document.querySelectorAll('#sidebar a').forEach(link => {
+            link.addEventListener('click', closeMenu);
         });
 
         updateUI();
