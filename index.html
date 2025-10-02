@@ -14,8 +14,19 @@
         header p { color: #6c757d; font-size: 15px; }
 
         .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 20px; }
-        .input-group { margin-bottom: 18px; }
+        .input-group { margin-bottom: 18px; position: relative; }
         .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #495057; font-size: 15px; }
+
+        /* Общий стиль для всех полей */
+        .input-field, .select-header {
+            width: 100%; padding: 14px; border: 1px solid #ced4da; border-radius: 12px;
+            font-size: 16px; background: white;
+        }
+        .input-field:focus, .select-header:focus {
+            outline: none;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
+        }
 
         /* Кастомный dropdown */
         .custom-select {
@@ -23,9 +34,7 @@
             width: 100%;
         }
         .select-header {
-            width: 100%; padding: 14px; border: 1px solid #ced4da; border-radius: 12px;
-            font-size: 16px; cursor: pointer; background: white;
-            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
         }
         .select-header::after {
             content: "▼"; font-size: 12px; color: #6c757d; transform: scaleY(0.6);
@@ -45,8 +54,11 @@
         .option:hover { background: #f1f5ff; }
         .option.selected { background: #e7f1ff; font-weight: 600; }
 
-        .bank-select { display: none; margin-top: 12px; }
-        .bank-select.active { display: block; }
+        /* Подсказка под полем суммы */
+        .hint {
+            font-size: 13px; color: #6c757d; margin-top: 6px;
+            position: absolute; left: 0; bottom: -22px;
+        }
 
         .rate-info {
             background: #e7f1ff; border-radius: 12px; padding: 14px; text-align: center;
@@ -80,29 +92,24 @@
                         <div class="options-list" id="fromOptionsList"></div>
                     </div>
                 </div>
+            </div>
 
-                <div id="bankSelect" class="bank-select">
-                    <label>Выберите банк / платёжную систему</label>
-                    <select id="bank">
-                        <option value="sber">СберБанк</option>
-                        <option value="tinkoff">Тинькофф</option>
-                        <option value="alfa">Альфа-Банк</option>
-                        <option value="vtb">ВТБ</option>
-                        <option value="gazprom">Газпромбанк</option>
-                        <option value="open">Банк Открытие</option>
-                        <option value="raiffeisen">Райффайзен Банк</option>
-                        <option value="pochta">Почта Банк</option>
-                        <option value="yoomoney">ЮMoney (Яндекс)</option>
-                        <option value="qiwi">QIWI Кошелёк</option>
-                        <option value="tochka">Точка (для бизнеса)</option>
-                        <option value="mts">МТС Банк</option>
-                    </select>
+            <!-- Выбор банка (только если RUB) -->
+            <div class="input-group" id="bankSelect" style="display: none;">
+                <label>Банк / платёжная система</label>
+                <div class="custom-select" id="bankSelectCustom">
+                    <div class="select-header" id="bankHeader">Выберите банк</div>
+                    <div class="select-options" id="bankOptions">
+                        <input type="text" class="search-input" placeholder="Поиск...">
+                        <div class="options-list" id="bankOptionsList"></div>
+                    </div>
                 </div>
             </div>
 
             <div class="input-group">
                 <label>Сумма</label>
-                <input type="number" id="amount" placeholder="Введите сумму" min="100" value="10000">
+                <input type="number" id="amount" class="input-field" placeholder="Введите сумму" min="100" value="10000">
+                <div class="hint" id="minHint">Минимальная сумма: 100 RUB</div>
             </div>
 
             <div class="arrow" style="text-align: center; margin: 16px 0; font-size: 24px; color: #0d6efd;">↓</div>
@@ -125,7 +132,7 @@
     </div>
 
     <script>
-        // Валюты, отсортированные по популярности
+        // Валюты
         const currencies = [
             { value: "RUB", name: "Российский рубль (RUB)" },
             { value: "BTC", name: "Bitcoin (BTC)" },
@@ -145,10 +152,45 @@
             { value: "XMR", name: "Monero (XMR)" }
         ];
 
+        // Банки
+        const banks = [
+            { value: "sber", name: "СберБанк" },
+            { value: "tinkoff", name: "Тинькофф" },
+            { value: "alfa", name: "Альфа-Банк" },
+            { value: "vtb", name: "ВТБ" },
+            { value: "gazprom", name: "Газпромбанк" },
+            { value: "open", name: "Банк Открытие" },
+            { value: "raiffeisen", name: "Райффайзен Банк" },
+            { value: "pochta", name: "Почта Банк" },
+            { value: "yoomoney", name: "ЮMoney (Яндекс)" },
+            { value: "qiwi", name: "QIWI Кошелёк" },
+            { value: "tochka", name: "Точка (для бизнеса)" },
+            { value: "mts", name: "МТС Банк" }
+        ];
+
         const cryptoCurrencies = currencies.filter(c => c.value !== "RUB");
         const allCurrencies = currencies;
 
-        // Курсы (без изменений)
+        // Минимальные суммы (в единицах валюты)
+        const minAmounts = {
+            RUB: 100,
+            BTC: 0.001,
+            ETH: 0.01,
+            USDT: 20,
+            BNB: 0.05,
+            SOL: 0.1,
+            XRP: 20,
+            ADA: 30,
+            DOGE: 100,
+            TRX: 100,
+            LTC: 0.1,
+            MATIC: 20,
+            DOT: 5,
+            AVAX: 1,
+            SHIB: 100000,
+            XMR: 0.05
+        };
+
         const rates = {
             'RUB_BTC': 0.00000165, 'RUB_ETH': 0.000025, 'RUB_USDT': 0.011,
             'RUB_BNB': 0.000035, 'RUB_SOL': 0.00018, 'RUB_XRP': 0.017,
@@ -175,14 +217,15 @@
             'USDT_SHIB': 50000000, 'USDT_XMR': 0.00588
         };
 
-        // Состояние
         let fromValue = "RUB";
         let toValue = "BTC";
+        let bankValue = "sber";
 
-        // Инициализация dropdown'ов
+        // Универсальная функция для dropdown
         function initDropdown(id, list, initial, onChange) {
             const header = document.getElementById(`${id}Header`);
             const optionsList = document.getElementById(`${id}OptionsList`);
+            const container = document.getElementById(`${id}SelectCustom` || `${id}Select`);
             const searchInput = document.querySelector(`#${id}Options .search-input`);
 
             function renderOptions(items) {
@@ -194,12 +237,11 @@
             }
 
             renderOptions(list);
-
-            header.textContent = list.find(c => c.value === initial)?.name || "Выберите валюту";
+            header.textContent = list.find(c => c.value === initial)?.name || "Выберите";
             onChange(initial);
 
-            // Переключение
-            document.getElementById(`${id}Select`).addEventListener('click', (e) => {
+            const selectEl = document.getElementById(`${id}SelectCustom`) || document.getElementById(`${id}Select`);
+            selectEl.addEventListener('click', (e) => {
                 e.stopPropagation();
                 document.querySelectorAll('.select-options').forEach(el => {
                     if (el.id !== `${id}Options`) el.classList.remove('active');
@@ -207,7 +249,6 @@
                 document.getElementById(`${id}Options`).classList.toggle('active');
             });
 
-            // Выбор
             optionsList.addEventListener('click', (e) => {
                 if (e.target.classList.contains('option')) {
                     const value = e.target.dataset.value;
@@ -220,7 +261,6 @@
                 }
             });
 
-            // Поиск
             searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.toLowerCase();
                 const filtered = list.filter(c => 
@@ -228,13 +268,34 @@
                 );
                 renderOptions(filtered);
             });
+
+            document.getElementById(`${id}Options`).addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
         }
 
-        // Обновление UI
+        function getMinAmount(currency) {
+            return minAmounts[currency] || 100;
+        }
+
+        function formatMinHint(currency) {
+            const min = getMinAmount(currency);
+            if (currency === 'SHIB') {
+                return `Минимальная сумма: ${Math.floor(min).toLocaleString('ru-RU')} ${currency}`;
+            }
+            return `Минимальная сумма: ${min.toLocaleString('ru-RU', {
+                minimumFractionDigits: currency === 'RUB' ? 2 : 6,
+                maximumFractionDigits: currency === 'RUB' ? 2 : 8
+            }).replace(/\.?0+$/, '')} ${currency}`;
+        }
+
         function updateUI() {
             const amount = parseFloat(document.getElementById('amount').value) || 0;
-            const bankSelect = document.getElementById('bankSelect');
-            bankSelect.classList.toggle('active', fromValue === 'RUB');
+            const bankSelectEl = document.getElementById('bankSelect');
+            bankSelectEl.style.display = fromValue === 'RUB' ? 'block' : 'none';
+
+            // Обновляем подсказку
+            document.getElementById('minHint').textContent = formatMinHint(fromValue);
 
             if (fromValue === toValue) {
                 document.getElementById('rateInfo').textContent = 'Нельзя обменивать одинаковые валюты';
@@ -263,33 +324,39 @@
                 `1 ${fromValue} ≈ ${rate.toLocaleString('ru-RU', { maximumFractionDigits: 8 })} ${toValue}`;
             document.getElementById('result').innerHTML = 
                 `${amount.toLocaleString('ru-RU')} ${fromValue} ≈ <strong>${formattedResult} ${toValue}</strong>`;
-            document.getElementById('nextBtn').disabled = amount < 100;
+
+            const minAmount = getMinAmount(fromValue);
+            document.getElementById('nextBtn').disabled = amount < minAmount;
         }
 
-        // Навигация
         document.getElementById('nextBtn').addEventListener('click', () => {
             const amount = document.getElementById('amount').value;
-            const bank = fromValue === 'RUB' ? document.getElementById('bank').value : '';
             const params = new URLSearchParams({ from: fromValue, to: toValue, amount });
-            if (bank) params.append('bank', bank);
+            if (fromValue === 'RUB') params.append('bank', bankValue);
             window.location.href = `exchange.html?${params.toString()}`;
         });
 
         document.getElementById('amount').addEventListener('input', updateUI);
 
-        // Инициализация dropdown'ов
+        // Инициализация
         initDropdown('from', allCurrencies, 'RUB', (val) => {
             fromValue = val;
             updateUI();
         });
-        initDropdown('to', cryptoCurrencies.concat([{ value: "RUB", name: "Российский рубль (RUB)" }]), 'BTC', (val) => {
+
+        initDropdown('to', [...cryptoCurrencies, { value: "RUB", name: "Российский рубль (RUB)" }], 'BTC', (val) => {
             toValue = val;
             updateUI();
         });
 
-        // Закрытие при клике вне
-        document.addEventListener('click', () => {
-            document.querySelectorAll('.select-options').forEach(el => el.classList.remove('active'));
+        initDropdown('bank', banks, 'sber', (val) => {
+            bankValue = val;
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.custom-select')) {
+                document.querySelectorAll('.select-options').forEach(el => el.classList.remove('active'));
+            }
         });
 
         updateUI();
