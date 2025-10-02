@@ -1,174 +1,298 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FastSwap.pro — Обмен 50+ валют мгновенно</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FastSwap.pro — Обмен 50+ валют</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: #f8f9fa; color: #212529; }
-        .container { max-width: 700px; margin: 30px auto; padding: 20px; }
-        header { text-align: center; margin-bottom: 25px; }
-        header h1 { font-size: 28px; color: #0d6efd; margin-bottom: 8px; }
-        header p { color: #6c757d; font-size: 16px; }
-        .exchange-form { background: white; padding: 25px; border-radius: 14px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
-        .input-group { margin-bottom: 22px; }
-        .input-group label { display: block; margin-bottom: 10px; font-weight: 600; color: #495057; }
-        .currency-select { display: flex; align-items: center; gap: 12px; }
-        .currency-select select { flex: 1; padding: 14px; border: 1px solid #ced4da; border-radius: 10px; font-size: 16px; background: white; }
-        .arrow { text-align: center; font-size: 28px; color: #0d6efd; margin: 12px 0; transition: transform 0.3s; }
-        .arrow:hover { transform: scale(1.2); }
-        input[type="text"], input[type="number"] { width: 100%; padding: 14px; border: 1px solid #ced4da; border-radius: 10px; font-size: 16px; }
-        button { width: 100%; padding: 16px; background: #0d6efd; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: #f8f9fa; color: #212529; padding: 16px; }
+        .container { max-width: 700px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 24px; }
+        header h1 { font-size: 24px; color: #0d6efd; margin-bottom: 8px; }
+        header p { color: #6c757d; font-size: 15px; }
+
+        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #495057; font-size: 15px; }
+
+        /* Кастомный dropdown */
+        .custom-select {
+            position: relative;
+            width: 100%;
+        }
+        .select-header {
+            width: 100%; padding: 14px; border: 1px solid #ced4da; border-radius: 12px;
+            font-size: 16px; cursor: pointer; background: white;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .select-header::after {
+            content: "▼"; font-size: 12px; color: #6c757d; transform: scaleY(0.6);
+        }
+        .select-options {
+            position: absolute; top: 100%; left: 0; right: 0;
+            background: white; border: 1px solid #ced4da; border-top: none;
+            border-radius: 0 0 12px 12px; max-height: 250px; overflow-y: auto;
+            z-index: 10; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .select-options.active { display: block; }
+        .search-input {
+            width: 100%; padding: 10px 14px; border: none; border-bottom: 1px solid #eee;
+            font-size: 15px; outline: none;
+        }
+        .option { padding: 12px 14px; cursor: pointer; font-size: 15px; }
+        .option:hover { background: #f1f5ff; }
+        .option.selected { background: #e7f1ff; font-weight: 600; }
+
+        .bank-select { display: none; margin-top: 12px; }
+        .bank-select.active { display: block; }
+
+        .rate-info {
+            background: #e7f1ff; border-radius: 12px; padding: 14px; text-align: center;
+            margin: 20px 0; font-weight: 600; color: #0d6efd;
+        }
+        .result {
+            text-align: center; margin: 20px 0; font-size: 18px; color: #212529;
+        }
+        button { 
+            width: 100%; padding: 16px; background: #0d6efd; color: white; 
+            border: none; border-radius: 12px; font-size: 17px; font-weight: 600; cursor: pointer;
+        }
         button:hover { background: #0b5ed7; }
-        .fee-note { text-align: center; margin-top: 18px; color: #6c757d; font-size: 14px; }
-        .popular-pairs { margin-top: 25px; }
-        .popular-pairs h3 { text-align: center; margin-bottom: 15px; color: #495057; }
-        .pair-buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .pair-btn { padding: 8px 16px; background: #e9ecef; border: none; border-radius: 20px; font-size: 14px; cursor: pointer; }
-        .pair-btn:hover { background: #dee2e6; }
-        footer { text-align: center; margin-top: 30px; color: #868e96; font-size: 14px; }
-        footer a { color: #0d6efd; text-decoration: none; }
-        footer a:hover { text-decoration: underline; }
+        button:disabled { background: #adb5bd; cursor: not-allowed; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>FastSwap.pro</h1>
-            <p>Обмен 50+ валют: RUB, USD, BTC, ETH, USDT, LTC, DOGE, XMR и другие</p>
+            <p>Обмен 50+ валют: крипта, фиат, банки РФ</p>
         </header>
 
-        <div class="exchange-form">
+        <div class="card">
             <div class="input-group">
                 <label>Отдаете</label>
-                <div class="currency-select">
-                    <select id="fromCurrency">
-                        <!-- ФИАТ -->
-                        <option value="RUB">🇷🇺 RUB — Российский рубль</option>
-                        <option value="USD">🇺🇸 USD — Доллар США</option>
-                        <option value="EUR">🇪🇺 EUR — Евро</option>
-                        <!-- КРИПТА -->
-                        <option value="BTC">₿ BTC — Bitcoin</option>
-                        <option value="ETH">Ξ ETH — Ethereum</option>
-                        <option value="USDT">₮ USDT — Tether (TRC20)</option>
-                        <option value="BNB">🔶 BNB — Binance Coin</option>
-                        <option value="LTC">Ł LTC — Litecoin</option>
-                        <option value="DOGE">Ð DOGE — Dogecoin</option>
-                        <option value="XMR">XMR — Monero</option>
-                        <option value="SOL">◎ SOL — Solana</option>
-                        <option value="ADA">₳ ADA — Cardano</option>
-                        <option value="DOT">• DOT — Polkadot</option>
-                        <option value="SHIB">🦮 SHIB — Shiba Inu</option>
+                <div class="custom-select" id="fromSelect">
+                    <div class="select-header" id="fromHeader">Выберите валюту</div>
+                    <div class="select-options" id="fromOptions">
+                        <input type="text" class="search-input" placeholder="Поиск...">
+                        <div class="options-list" id="fromOptionsList"></div>
+                    </div>
+                </div>
+
+                <div id="bankSelect" class="bank-select">
+                    <label>Выберите банк / платёжную систему</label>
+                    <select id="bank">
+                        <option value="sber">СберБанк</option>
+                        <option value="tinkoff">Тинькофф</option>
+                        <option value="alfa">Альфа-Банк</option>
+                        <option value="vtb">ВТБ</option>
+                        <option value="gazprom">Газпромбанк</option>
+                        <option value="open">Банк Открытие</option>
+                        <option value="raiffeisen">Райффайзен Банк</option>
+                        <option value="pochta">Почта Банк</option>
+                        <option value="yoomoney">ЮMoney (Яндекс)</option>
+                        <option value="qiwi">QIWI Кошелёк</option>
+                        <option value="tochka">Точка (для бизнеса)</option>
+                        <option value="mts">МТС Банк</option>
                     </select>
                 </div>
-                <input type="number" id="amount" placeholder="Сумма" min="100" step="100">
             </div>
 
-            <div class="arrow">↓</div>
+            <div class="input-group">
+                <label>Сумма</label>
+                <input type="number" id="amount" placeholder="Введите сумму" min="100" value="10000">
+            </div>
+
+            <div class="arrow" style="text-align: center; margin: 16px 0; font-size: 24px; color: #0d6efd;">↓</div>
 
             <div class="input-group">
                 <label>Получаете</label>
-                <div class="currency-select">
-                    <select id="toCurrency">
-                        <!-- КРИПТА -->
-                        <option value="BTC">₿ BTC — Bitcoin</option>
-                        <option value="ETH">Ξ ETH — Ethereum</option>
-                        <option value="USDT">₮ USDT — Tether (TRC20)</option>
-                        <option value="BNB">🔶 BNB — Binance Coin</option>
-                        <option value="LTC">Ł LTC — Litecoin</option>
-                        <option value="DOGE">Ð DOGE — Dogecoin</option>
-                        <option value="XMR">XMR — Monero</option>
-                        <option value="SOL">◎ SOL — Solana</option>
-                        <option value="ADA">₳ ADA — Cardano</option>
-                        <option value="DOT">• DOT — Polkadot</option>
-                        <option value="SHIB">🦮 SHIB — Shiba Inu</option>
-                        <!-- ФИАТ -->
-                        <option value="RUB">🇷🇺 RUB — Российский рубль</option>
-                        <option value="USD">🇺🇸 USD — Доллар США</option>
-                        <option value="EUR">🇪🇺 EUR — Евро</option>
-                    </select>
-                </div>
-                <input type="text" id="wallet" placeholder="Ваш кошелек / реквизиты">
-            </div>
-
-            <button onclick="submitExchange()">Обменять сейчас</button>
-            <p class="fee-note">Комиссия от 2.5% до 4.5% (включена в курс). Без скрытых платежей.</p>
-
-            <div class="popular-pairs">
-                <h3>Популярные направления</h3>
-                <div class="pair-buttons">
-                    <button class="pair-btn" onclick="setPair('RUB', 'BTC')">RUB → BTC</button>
-                    <button class="pair-btn" onclick="setPair('BTC', 'RUB')">BTC → RUB</button>
-                    <button class="pair-btn" onclick="setPair('RUB', 'USDT')">RUB → USDT</button>
-                    <button class="pair-btn" onclick="setPair('USDT', 'RUB')">USDT → RUB</button>
-                    <button class="pair-btn" onclick="setPair('RUB', 'ETH')">RUB → ETH</button>
-                    <button class="pair-btn" onclick="setPair('ETH', 'RUB')">ETH → RUB</button>
+                <div class="custom-select" id="toSelect">
+                    <div class="select-header" id="toHeader">Выберите валюту</div>
+                    <div class="select-options" id="toOptions">
+                        <input type="text" class="search-input" placeholder="Поиск...">
+                        <div class="options-list" id="toOptionsList"></div>
+                    </div>
                 </div>
             </div>
+
+            <div class="rate-info" id="rateInfo">Курс обновляется автоматически</div>
+            <div class="result" id="result">—</div>
+            <button id="nextBtn" disabled>Продолжить обмен</button>
         </div>
-
-        <footer>
-            <p>© 2024 FastSwap.pro — Мгновенный обмен криптовалют и фиата</p>
-            <p><a href="privacy.html">Политика конфиденциальности</a> | <a href="support.html">Поддержка</a></p>
-        </footer>
     </div>
 
     <script>
-        function setPair(from, to) {
-            document.getElementById('fromCurrency').value = from;
-            document.getElementById('toCurrency').value = to;
+        // Валюты, отсортированные по популярности
+        const currencies = [
+            { value: "RUB", name: "Российский рубль (RUB)" },
+            { value: "BTC", name: "Bitcoin (BTC)" },
+            { value: "USDT", name: "Tether (USDT)" },
+            { value: "ETH", name: "Ethereum (ETH)" },
+            { value: "BNB", name: "Binance Coin (BNB)" },
+            { value: "SOL", name: "Solana (SOL)" },
+            { value: "XRP", name: "Ripple (XRP)" },
+            { value: "ADA", name: "Cardano (ADA)" },
+            { value: "DOGE", name: "Dogecoin (DOGE)" },
+            { value: "TRX", name: "TRON (TRX)" },
+            { value: "LTC", name: "Litecoin (LTC)" },
+            { value: "MATIC", name: "Polygon (MATIC)" },
+            { value: "DOT", name: "Polkadot (DOT)" },
+            { value: "AVAX", name: "Avalanche (AVAX)" },
+            { value: "SHIB", name: "Shiba Inu (SHIB)" },
+            { value: "XMR", name: "Monero (XMR)" }
+        ];
+
+        const cryptoCurrencies = currencies.filter(c => c.value !== "RUB");
+        const allCurrencies = currencies;
+
+        // Курсы (без изменений)
+        const rates = {
+            'RUB_BTC': 0.00000165, 'RUB_ETH': 0.000025, 'RUB_USDT': 0.011,
+            'RUB_BNB': 0.000035, 'RUB_SOL': 0.00018, 'RUB_XRP': 0.017,
+            'RUB_ADA': 0.038, 'RUB_DOGE': 0.15, 'RUB_LTC': 0.0016,
+            'RUB_TRX': 0.12, 'RUB_MATIC': 0.019, 'RUB_DOT': 0.022,
+            'RUB_AVAX': 0.011, 'RUB_SHIB': 1600, 'RUB_XMR': 0.0065,
+
+            'BTC_RUB': 600000, 'ETH_RUB': 40000, 'USDT_RUB': 90,
+            'BNB_RUB': 28000, 'SOL_RUB': 5500, 'XRP_RUB': 58,
+            'ADA_RUB': 26, 'DOGE_RUB': 6.6, 'LTC_RUB': 620,
+            'TRX_RUB': 8.3, 'MATIC_RUB': 52, 'DOT_RUB': 45,
+            'AVAX_RUB': 90, 'SHIB_RUB': 0.000056, 'XMR_RUB': 154,
+
+            'BTC_USDT': 65000, 'ETH_USDT': 3500, 'BNB_USDT': 600,
+            'SOL_USDT': 150, 'XRP_USDT': 0.55, 'ADA_USDT': 0.45,
+            'DOGE_USDT': 0.12, 'LTC_USDT': 80, 'TRX_USDT': 0.12,
+            'MATIC_USDT': 0.85, 'DOT_USDT': 7.5, 'AVAX_USDT': 35,
+            'SHIB_USDT': 0.00000002, 'XMR_USDT': 170,
+
+            'USDT_BTC': 0.000015, 'USDT_ETH': 0.000285, 'USDT_BNB': 0.00166,
+            'USDT_SOL': 0.0066, 'USDT_XRP': 1.8, 'USDT_ADA': 2.2,
+            'USDT_DOGE': 8.3, 'USDT_LTC': 0.0125, 'USDT_TRX': 8.3,
+            'USDT_MATIC': 1.17, 'USDT_DOT': 0.133, 'USDT_AVAX': 0.0285,
+            'USDT_SHIB': 50000000, 'USDT_XMR': 0.00588
+        };
+
+        // Состояние
+        let fromValue = "RUB";
+        let toValue = "BTC";
+
+        // Инициализация dropdown'ов
+        function initDropdown(id, list, initial, onChange) {
+            const header = document.getElementById(`${id}Header`);
+            const optionsList = document.getElementById(`${id}OptionsList`);
+            const searchInput = document.querySelector(`#${id}Options .search-input`);
+
+            function renderOptions(items) {
+                optionsList.innerHTML = items.map(item => 
+                    `<div class="option ${item.value === initial ? 'selected' : ''}" data-value="${item.value}">
+                        ${item.name}
+                    </div>`
+                ).join('');
+            }
+
+            renderOptions(list);
+
+            header.textContent = list.find(c => c.value === initial)?.name || "Выберите валюту";
+            onChange(initial);
+
+            // Переключение
+            document.getElementById(`${id}Select`).addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.querySelectorAll('.select-options').forEach(el => {
+                    if (el.id !== `${id}Options`) el.classList.remove('active');
+                });
+                document.getElementById(`${id}Options`).classList.toggle('active');
+            });
+
+            // Выбор
+            optionsList.addEventListener('click', (e) => {
+                if (e.target.classList.contains('option')) {
+                    const value = e.target.dataset.value;
+                    const name = e.target.textContent;
+                    header.textContent = name;
+                    document.querySelectorAll(`#${id}Options .option`).forEach(el => el.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    document.getElementById(`${id}Options`).classList.remove('active');
+                    onChange(value);
+                }
+            });
+
+            // Поиск
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const filtered = list.filter(c => 
+                    c.name.toLowerCase().includes(term) || c.value.toLowerCase().includes(term)
+                );
+                renderOptions(filtered);
+            });
         }
 
-        function submitExchange() {
-            const from = document.getElementById('fromCurrency').value;
-            const to = document.getElementById('toCurrency').value;
+        // Обновление UI
+        function updateUI() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const bankSelect = document.getElementById('bankSelect');
+            bankSelect.classList.toggle('active', fromValue === 'RUB');
+
+            if (fromValue === toValue) {
+                document.getElementById('rateInfo').textContent = 'Нельзя обменивать одинаковые валюты';
+                document.getElementById('result').textContent = '—';
+                document.getElementById('nextBtn').disabled = true;
+                return;
+            }
+
+            const rate = rates[`${fromValue}_${toValue}`] || 0;
+            if (rate === 0) {
+                document.getElementById('rateInfo').textContent = 'Курс временно недоступен для этой пары';
+                document.getElementById('result').textContent = '—';
+                document.getElementById('nextBtn').disabled = true;
+                return;
+            }
+
+            const result = amount * rate;
+            const formattedResult = toValue === 'SHIB' 
+                ? Math.floor(result).toLocaleString('ru-RU')
+                : result.toLocaleString('ru-RU', {
+                    minimumFractionDigits: toValue === 'RUB' ? 2 : 6,
+                    maximumFractionDigits: toValue === 'RUB' ? 2 : 8
+                }).replace(/\.?0+$/, '');
+
+            document.getElementById('rateInfo').innerHTML = 
+                `1 ${fromValue} ≈ ${rate.toLocaleString('ru-RU', { maximumFractionDigits: 8 })} ${toValue}`;
+            document.getElementById('result').innerHTML = 
+                `${amount.toLocaleString('ru-RU')} ${fromValue} ≈ <strong>${formattedResult} ${toValue}</strong>`;
+            document.getElementById('nextBtn').disabled = amount < 100;
+        }
+
+        // Навигация
+        document.getElementById('nextBtn').addEventListener('click', () => {
             const amount = document.getElementById('amount').value;
-            const wallet = document.getElementById('wallet').value;
+            const bank = fromValue === 'RUB' ? document.getElementById('bank').value : '';
+            const params = new URLSearchParams({ from: fromValue, to: toValue, amount });
+            if (bank) params.append('bank', bank);
+            window.location.href = `exchange.html?${params.toString()}`;
+        });
 
-            if (!amount || parseFloat(amount) < 100) {
-                alert('Минимальная сумма: 100');
-                return;
-            }
-            if (!wallet) {
-                alert('Укажите кошелек или реквизиты');
-                return;
-            }
+        document.getElementById('amount').addEventListener('input', updateUI);
 
-            // Валидация кошельков (простая)
-            const cryptoRegex = {
-                BTC: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/,
-                ETH: /^0x[a-fA-F0-9]{40}$/,
-                USDT: /^T[a-zA-Z0-9]{33}$/, // TRC20
-                LTC: /^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$/,
-                DOGE: /^D{1}[5-9A-HJ-NP-U]{1}[1-9A-HJ-NP-Za-km-z]{32}$/,
-                XMR: /^[48][0-9AB][1-9A-HJ-NP-Za-km-z]{93}$/,
-                BNB: /^0x[a-fA-F0-9]{40}$/,
-                SOL: /^[1-9A-HJ-NP-Za-km-z]{44}$/,
-                ADA: /^[D][a-zA-Z0-9]{58}$/,
-                DOT: /^[1-9A-HJ-NP-Za-km-z]{47}$/,
-                SHIB: /^0x[a-fA-F0-9]{40}$/
-            };
+        // Инициализация dropdown'ов
+        initDropdown('from', allCurrencies, 'RUB', (val) => {
+            fromValue = val;
+            updateUI();
+        });
+        initDropdown('to', cryptoCurrencies.concat([{ value: "RUB", name: "Российский рубль (RUB)" }]), 'BTC', (val) => {
+            toValue = val;
+            updateUI();
+        });
 
-            if (cryptoRegex[to] && !cryptoRegex[to].test(wallet)) {
-                alert(`Неверный формат адреса для ${to}`);
-                return;
-            }
+        // Закрытие при клике вне
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.select-options').forEach(el => el.classList.remove('active'));
+        });
 
-            // Отправка
-            fetch('proxy_handler.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `from=${from}&to=${to}&amount=${amount}&wallet=${encodeURIComponent(wallet)}`
-            })
-            .then(response => response.text())
-            .then(html => {
-                document.open();
-                document.write(html);
-                document.close();
-            })
-            .catch(err => alert('Ошибка подключения'));
-        }
+        updateUI();
     </script>
 </body>
 </html>

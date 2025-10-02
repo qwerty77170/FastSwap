@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FastSwap.pro — Реквизиты</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: #f8f9fa; color: #212529; padding: 16px; }
+        .container { max-width: 700px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 24px; }
+        header h1 { font-size: 24px; color: #0d6efd; margin-bottom: 8px; }
+        header p { color: #6c757d; font-size: 15px; }
+
+        .summary { background: #e7f1ff; border-radius: 12px; padding: 14px; margin-bottom: 20px; text-align: center; }
+        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .input-group { margin-bottom: 18px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #495057; font-size: 15px; }
+        input { width: 100%; padding: 14px; border: 1px solid #ced4da; border-radius: 12px; font-size: 16px; }
+        button { 
+            width: 100%; padding: 16px; background: #0d6efd; color: white; 
+            border: none; border-radius: 12px; font-size: 17px; font-weight: 600; cursor: pointer;
+        }
+        button:hover { background: #0b5ed7; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FastSwap.pro</h1>
+            <p>Укажите реквизиты для получения средств</p>
+        </header>
+
+        <div class="summary" id="summary"></div>
+
+        <div class="card">
+            <div class="input-group">
+                <label id="walletLabel">Кошелёк получателя</label>
+                <input type="text" id="wallet" placeholder="Адрес кошелька или реквизиты">
+            </div>
+
+            <div class="input-group">
+                <label>Ваш Telegram / Email для связи</label>
+                <input type="text" id="contact" placeholder="@username или email@example.com">
+            </div>
+
+            <button onclick="submitExchange()">Подтвердить обмен</button>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const from = urlParams.get('from');
+        const to = urlParams.get('to');
+        const amount = urlParams.get('amount');
+        const bank = urlParams.get('bank');
+
+        const banks = {
+            sber: 'СберБанк',
+            tinkoff: 'Тинькофф',
+            alfa: 'Альфа-Банк',
+            vtb: 'ВТБ',
+            gazprom: 'Газпромбанк',
+            open: 'Банк Открытие',
+            raiffeisen: 'Райффайзен Банк',
+            pochta: 'Почта Банк',
+            yoomoney: 'ЮMoney',
+            qiwi: 'QIWI',
+            tochka: 'Точка',
+            mts: 'МТС Банк'
+        };
+
+        // Валидация адресов
+        const cryptoRegex = {
+            BTC: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$|^bc1[a-z0-9]{39,59}$/,
+            ETH: /^0x[a-fA-F0-9]{40}$/,
+            USDT: /^T[a-zA-Z0-9]{33}$/, // TRC20
+            BNB: /^0x[a-fA-F0-9]{40}$/,
+            SOL: /^[1-9A-HJ-NP-Za-km-z]{44}$/,
+            XRP: /^r[1-9A-HJ-NP-Za-km-z]{24,34}$/,
+            ADA: /^[D][a-zA-Z0-9]{58}$/,
+            DOGE: /^D{1}[5-9A-HJ-NP-U]{1}[1-9A-HJ-NP-Za-km-z]{32}$/,
+            LTC: /^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$/,
+            TRX: /^T[a-zA-Z0-9]{33}$/,
+            MATIC: /^0x[a-fA-F0-9]{40}$/,
+            DOT: /^[1-9A-HJ-NP-Za-km-z]{47}$/,
+            AVAX: /^X-[a-zA-Z0-9]{33}$|^P-[a-zA-Z0-9]{33}$|^0x[a-fA-F0-9]{40}$/,
+            SHIB: /^0x[a-fA-F0-9]{40}$/,
+            XMR: /^[48][0-9AB][1-9A-HJ-NP-Za-km-z]{93}$/
+        };
+
+        // Отображаем сводку
+        const summaryEl = document.getElementById('summary');
+        let fromText = from;
+        if (from === 'RUB' && bank) {
+            fromText = `${banks[bank]} (${from})`;
+        }
+        summaryEl.innerHTML = `
+            Обмен: <strong>${parseFloat(amount).toLocaleString('ru-RU')} ${fromText}</strong> → <strong>${to}</strong>
+        `;
+
+        // Меняем подпись
+        const walletLabel = document.getElementById('walletLabel');
+        if (to === 'RUB') {
+            walletLabel.textContent = 'Реквизиты для получения RUB (номер счёта, ФИО, ИНН и т.д.)';
+        } else {
+            walletLabel.textContent = `Адрес кошелька ${to}`;
+        }
+
+        function submitExchange() {
+            const wallet = document.getElementById('wallet').value.trim();
+            const contact = document.getElementById('contact').value.trim();
+
+            if (!wallet) {
+                Telegram.WebApp.showAlert('Укажите кошелёк или реквизиты');
+                return;
+            }
+            if (!contact) {
+                Telegram.WebApp.showAlert('Укажите способ связи (Telegram или email)');
+                return;
+            }
+
+            // Валидация криптоадреса
+            if (to !== 'RUB' && cryptoRegex[to]) {
+                if (!cryptoRegex[to].test(wallet)) {
+                    Telegram.WebApp.showAlert(`Неверный формат адреса для ${to}`);
+                    return;
+                }
+            }
+
+            const data = {
+                from,
+                to,
+                amount: parseFloat(amount),
+                bank: bank || null,
+                wallet,
+                contact
+            };
+
+            Telegram.WebApp.sendData(JSON.stringify(data));
+            Telegram.WebApp.close();
+        }
+    </script>
+</body>
+</html>
