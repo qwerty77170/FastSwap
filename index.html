@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastSwap.pro — Обмен 50+ валют мгновенно</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f8f9fa; color: #212529; }
+        .container { max-width: 700px; margin: 30px auto; padding: 20px; }
+        header { text-align: center; margin-bottom: 25px; }
+        header h1 { font-size: 28px; color: #0d6efd; margin-bottom: 8px; }
+        header p { color: #6c757d; font-size: 16px; }
+        .exchange-form { background: white; padding: 25px; border-radius: 14px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+        .input-group { margin-bottom: 22px; }
+        .input-group label { display: block; margin-bottom: 10px; font-weight: 600; color: #495057; }
+        .currency-select { display: flex; align-items: center; gap: 12px; }
+        .currency-select select { flex: 1; padding: 14px; border: 1px solid #ced4da; border-radius: 10px; font-size: 16px; background: white; }
+        .arrow { text-align: center; font-size: 28px; color: #0d6efd; margin: 12px 0; transition: transform 0.3s; }
+        .arrow:hover { transform: scale(1.2); }
+        input[type="text"], input[type="number"] { width: 100%; padding: 14px; border: 1px solid #ced4da; border-radius: 10px; font-size: 16px; }
+        button { width: 100%; padding: 16px; background: #0d6efd; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        button:hover { background: #0b5ed7; }
+        .fee-note { text-align: center; margin-top: 18px; color: #6c757d; font-size: 14px; }
+        .popular-pairs { margin-top: 25px; }
+        .popular-pairs h3 { text-align: center; margin-bottom: 15px; color: #495057; }
+        .pair-buttons { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        .pair-btn { padding: 8px 16px; background: #e9ecef; border: none; border-radius: 20px; font-size: 14px; cursor: pointer; }
+        .pair-btn:hover { background: #dee2e6; }
+        footer { text-align: center; margin-top: 30px; color: #868e96; font-size: 14px; }
+        footer a { color: #0d6efd; text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FastSwap.pro</h1>
+            <p>Обмен 50+ валют: RUB, USD, BTC, ETH, USDT, LTC, DOGE, XMR и другие</p>
+        </header>
+
+        <div class="exchange-form">
+            <div class="input-group">
+                <label>Отдаете</label>
+                <div class="currency-select">
+                    <select id="fromCurrency">
+                        <!-- ФИАТ -->
+                        <option value="RUB">🇷🇺 RUB — Российский рубль</option>
+                        <option value="USD">🇺🇸 USD — Доллар США</option>
+                        <option value="EUR">🇪🇺 EUR — Евро</option>
+                        <!-- КРИПТА -->
+                        <option value="BTC">₿ BTC — Bitcoin</option>
+                        <option value="ETH">Ξ ETH — Ethereum</option>
+                        <option value="USDT">₮ USDT — Tether (TRC20)</option>
+                        <option value="BNB">🔶 BNB — Binance Coin</option>
+                        <option value="LTC">Ł LTC — Litecoin</option>
+                        <option value="DOGE">Ð DOGE — Dogecoin</option>
+                        <option value="XMR">XMR — Monero</option>
+                        <option value="SOL">◎ SOL — Solana</option>
+                        <option value="ADA">₳ ADA — Cardano</option>
+                        <option value="DOT">• DOT — Polkadot</option>
+                        <option value="SHIB">🦮 SHIB — Shiba Inu</option>
+                    </select>
+                </div>
+                <input type="number" id="amount" placeholder="Сумма" min="100" step="100">
+            </div>
+
+            <div class="arrow">↓</div>
+
+            <div class="input-group">
+                <label>Получаете</label>
+                <div class="currency-select">
+                    <select id="toCurrency">
+                        <!-- КРИПТА -->
+                        <option value="BTC">₿ BTC — Bitcoin</option>
+                        <option value="ETH">Ξ ETH — Ethereum</option>
+                        <option value="USDT">₮ USDT — Tether (TRC20)</option>
+                        <option value="BNB">🔶 BNB — Binance Coin</option>
+                        <option value="LTC">Ł LTC — Litecoin</option>
+                        <option value="DOGE">Ð DOGE — Dogecoin</option>
+                        <option value="XMR">XMR — Monero</option>
+                        <option value="SOL">◎ SOL — Solana</option>
+                        <option value="ADA">₳ ADA — Cardano</option>
+                        <option value="DOT">• DOT — Polkadot</option>
+                        <option value="SHIB">🦮 SHIB — Shiba Inu</option>
+                        <!-- ФИАТ -->
+                        <option value="RUB">🇷🇺 RUB — Российский рубль</option>
+                        <option value="USD">🇺🇸 USD — Доллар США</option>
+                        <option value="EUR">🇪🇺 EUR — Евро</option>
+                    </select>
+                </div>
+                <input type="text" id="wallet" placeholder="Ваш кошелек / реквизиты">
+            </div>
+
+            <button onclick="submitExchange()">Обменять сейчас</button>
+            <p class="fee-note">Комиссия от 2.5% до 4.5% (включена в курс). Без скрытых платежей.</p>
+
+            <div class="popular-pairs">
+                <h3>Популярные направления</h3>
+                <div class="pair-buttons">
+                    <button class="pair-btn" onclick="setPair('RUB', 'BTC')">RUB → BTC</button>
+                    <button class="pair-btn" onclick="setPair('BTC', 'RUB')">BTC → RUB</button>
+                    <button class="pair-btn" onclick="setPair('RUB', 'USDT')">RUB → USDT</button>
+                    <button class="pair-btn" onclick="setPair('USDT', 'RUB')">USDT → RUB</button>
+                    <button class="pair-btn" onclick="setPair('RUB', 'ETH')">RUB → ETH</button>
+                    <button class="pair-btn" onclick="setPair('ETH', 'RUB')">ETH → RUB</button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2024 FastSwap.pro — Мгновенный обмен криптовалют и фиата</p>
+            <p><a href="privacy.html">Политика конфиденциальности</a> | <a href="support.html">Поддержка</a></p>
+        </footer>
+    </div>
+
+    <script>
+        function setPair(from, to) {
+            document.getElementById('fromCurrency').value = from;
+            document.getElementById('toCurrency').value = to;
+        }
+
+        function submitExchange() {
+            const from = document.getElementById('fromCurrency').value;
+            const to = document.getElementById('toCurrency').value;
+            const amount = document.getElementById('amount').value;
+            const wallet = document.getElementById('wallet').value;
+
+            if (!amount || parseFloat(amount) < 100) {
+                alert('Минимальная сумма: 100');
+                return;
+            }
+            if (!wallet) {
+                alert('Укажите кошелек или реквизиты');
+                return;
+            }
+
+            // Валидация кошельков (простая)
+            const cryptoRegex = {
+                BTC: /^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/,
+                ETH: /^0x[a-fA-F0-9]{40}$/,
+                USDT: /^T[a-zA-Z0-9]{33}$/, // TRC20
+                LTC: /^[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}$/,
+                DOGE: /^D{1}[5-9A-HJ-NP-U]{1}[1-9A-HJ-NP-Za-km-z]{32}$/,
+                XMR: /^[48][0-9AB][1-9A-HJ-NP-Za-km-z]{93}$/,
+                BNB: /^0x[a-fA-F0-9]{40}$/,
+                SOL: /^[1-9A-HJ-NP-Za-km-z]{44}$/,
+                ADA: /^[D][a-zA-Z0-9]{58}$/,
+                DOT: /^[1-9A-HJ-NP-Za-km-z]{47}$/,
+                SHIB: /^0x[a-fA-F0-9]{40}$/
+            };
+
+            if (cryptoRegex[to] && !cryptoRegex[to].test(wallet)) {
+                alert(`Неверный формат адреса для ${to}`);
+                return;
+            }
+
+            // Отправка
+            fetch('proxy_handler.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `from=${from}&to=${to}&amount=${amount}&wallet=${encodeURIComponent(wallet)}`
+            })
+            .then(response => response.text())
+            .then(html => {
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(err => alert('Ошибка подключения'));
+        }
+    </script>
+</body>
+</html>
