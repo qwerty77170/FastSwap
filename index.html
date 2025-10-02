@@ -76,6 +76,44 @@
     </style>
 </head>
 <body>
+    <!-- Боковое меню -->
+<div id="sidebar" style="
+    position: fixed; top: 0; left: -300px; width: 280px; height: 100vh;
+    background: white; box-shadow: 4px 0 12px rgba(0,0,0,0.1);
+    z-index: 1000; transition: left 0.3s ease;
+    padding: 20px; display: flex; flex-direction: column;
+">
+    <button onclick="closeMenu()" style="
+        align-self: flex-end; background: none; border: none; font-size: 24px;
+        cursor: pointer; margin-bottom: 20px;
+    ">×</button>
+    
+    <h2 style="font-size: 20px; margin-bottom: 24px; color: #0d6efd;">FastSwap.pro</h2>
+    
+    <nav style="display: flex; flex-direction: column; gap: 16px;">
+        <a href="index.html" style="text-decoration: none; color: #212529; font-size: 17px; padding: 10px 0;">🏠 Обмен</a>
+        <a href="support.html" style="text-decoration: none; color: #212529; font-size: 17px; padding: 10px 0;">❓ Поддержка</a>
+        <a href="privacy.html" style="text-decoration: none; color: #212529; font-size: 17px; padding: 10px 0;">🔒 Политика конфиденциальности</a>
+    </nav>
+</div>
+
+<!-- Оверлей -->
+<div id="overlay" style="
+    position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+    background: rgba(0,0,0,0.4); z-index: 999; display: none;
+"></div>
+
+<!-- Кнопка меню в хедере -->
+<header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+    <button id="menuBtn" style="
+        background: none; border: none; font-size: 24px; cursor: pointer;
+    ">☰</button>
+    <div style="text-align: center; flex-grow: 1;">
+        <h1>FastSwap.pro</h1>
+        <p>Обмен 50+ валют: крипта, фиат, банки РФ</p>
+    </div>
+    <div style="width: 24px;"></div> <!-- для баланса -->
+</header>
     <div class="container">
         <header>
             <h1>FastSwap.pro</h1>
