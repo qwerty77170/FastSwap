@@ -22,7 +22,19 @@
             background: rgba(0,0,0,0.4); z-index: 999; display: none;
         }
         .menu-btn {
-            background: none; border: none; font-size: 24px; cursor: pointer;
+            background: none; border: none; 
+            font-size: 16px; /* в 4 раза меньше: 24 → 16 */
+            color: #0d6efd; /* голубая */
+            cursor: pointer;
+            margin-left: -8px; /* сдвинута левее */
+            padding: 4px;
+            border-radius: 4px;
+            transition: color 0.2s, background 0.2s;
+        }
+        .menu-btn:hover,
+        .menu-btn:active {
+            color: #0a58ca; /* темно-синяя при наведении и нажатии */
+            background: rgba(13, 110, 253, 0.1);
         }
         #sidebar h2 {
             font-size: 20px; margin-bottom: 24px; color: #0d6efd;
@@ -105,13 +117,13 @@
     <div id="overlay" onclick="closeMenu()"></div>
 
     <div class="container">
-        <header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+        <!-- Хедер с центрированным заголовком -->
+        <header style="text-align: center; margin-bottom: 24px; position: relative;">
             <button id="menuBtn" class="menu-btn">☰</button>
-            <div style="text-align: center; flex-grow: 1;">
+            <div>
                 <h1>FastSwap.pro</h1>
                 <p>Обмен 50+ валют: крипта, фиат, банки РФ</p>
             </div>
-            <div style="width: 24px;"></div>
         </header>
 
         <div class="card">
